@@ -148,8 +148,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // "You" profile is visible
-      expect(find.text('Blessy'), findsOneWidget);
-      expect(find.text('You'), findsOneWidget);
+      expect(find.text('You'), findsWidgets);
       expect(find.text('YOUR PROFILE'), findsOneWidget);
 
       // Empty friends state is visible

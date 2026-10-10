@@ -61,7 +61,7 @@ class SettingsScreen extends ConsumerWidget {
                           Row(
                             children: [
                               Text(
-                                selfPerson?.name ?? 'Blessy',
+                                selfPerson?.name ?? 'You',
                                 style: const TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w700,
@@ -174,17 +174,17 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   const Divider(),
                   ListTile(
-                    key: const Key('settings_export_csv_tile'),
+                    key: const Key('settings_export_pdf_tile'),
                     leading: const Icon(
-                      Icons.file_download_outlined,
+                      Icons.picture_as_pdf_outlined,
                       color: AppColors.primaryDarkPurple,
                     ),
                     title: const Text(
-                      'Export Data (CSV)',
+                      'Export Data (PDF / CSV)',
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: const Text(
-                      'Export all debts, expenses, and repayments to CSV',
+                      'Export all debts, expenses, and repayments to PDF or CSV',
                       style: TextStyle(fontSize: 12),
                     ),
                     trailing: const Icon(Icons.chevron_right_rounded),

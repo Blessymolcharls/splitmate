@@ -27,6 +27,7 @@ abstract class ExpensesRepository {
     required Map<String, int> shares,
   });
   Future<void> deleteExpense(String id);
+  Future<void> deleteAllExpenses();
 }
 
 class SqliteExpensesRepository implements ExpensesRepository {
@@ -275,6 +276,14 @@ class SqliteExpensesRepository implements ExpensesRepository {
 
     await _db.transaction((txn) async {
       await txn.delete('expenses', where: 'id = ?', whereArgs: [id]);
+    });
+  }
+
+  @override
+  Future<void> deleteAllExpenses() async {
+    await _db.transaction((txn) async {
+      await txn.delete('expense_shares');
+      await txn.delete('expenses');
     });
   }
 }

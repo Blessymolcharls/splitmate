@@ -460,7 +460,7 @@ class _RecordRepaymentScreenState extends ConsumerState<RecordRepaymentScreen> {
                                     return DropdownMenuItem(
                                       value: p.id,
                                       child: Text(
-                                        p.isSelf ? '${p.name} (You)' : p.name,
+                                        p.isSelf ? (p.name.trim().toLowerCase() == 'you' ? 'You' : '${p.name} (You)') : p.name,
                                       ),
                                     );
                                   }).toList(),
@@ -515,7 +515,7 @@ class _RecordRepaymentScreenState extends ConsumerState<RecordRepaymentScreen> {
                                     return DropdownMenuItem(
                                       value: p.id,
                                       child: Text(
-                                        p.isSelf ? '${p.name} (You)' : p.name,
+                                        p.isSelf ? (p.name.trim().toLowerCase() == 'you' ? 'You' : '${p.name} (You)') : p.name,
                                       ),
                                     );
                                   }).toList(),

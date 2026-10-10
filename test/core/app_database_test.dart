@@ -19,13 +19,13 @@ void main() {
       await appDb.close();
     });
 
-    test('initializes schema and seeds default self user (Blessy)', () async {
+    test('initializes schema and seeds default self user (You)', () async {
       final db = appDb.database;
       final people = await db.query('people');
 
       expect(people.length, 1);
       expect(people.first['id'], DatabaseMigrations.defaultSelfUserId);
-      expect(people.first['name'], 'Blessy');
+      expect(people.first['name'], 'You');
       expect(people.first['is_self'], 1);
       expect(people.first['is_archived'], 0);
     });

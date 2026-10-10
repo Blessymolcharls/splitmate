@@ -239,13 +239,22 @@ class _AddDebtScreenState extends ConsumerState<AddDebtScreen> {
         : '₹0';
 
     final debtorName = debtor?.isSelf == true
-        ? 'You (${debtor?.name})'
+        ? (debtor?.name.trim().toLowerCase() == 'you'
+            ? 'You'
+            : 'You (${debtor?.name})')
         : (debtor?.name ?? 'Debtor');
     final creditorName = creditor?.isSelf == true
-        ? 'You (${creditor?.name})'
+        ? (creditor?.name.trim().toLowerCase() == 'you'
+            ? 'You'
+            : 'You (${creditor?.name})')
         : (creditor?.name ?? 'Creditor');
 
     return '$debtorName owes $creditorName $formattedAmount';
+  }
+
+  String _displayName(Person p) {
+    if (!p.isSelf) return p.name;
+    return p.name.trim().toLowerCase() == 'you' ? 'You' : '${p.name} (You)';
   }
 
   Future<void> _openAddPerson({required bool isDebtor}) async {
@@ -344,7 +353,7 @@ class _AddDebtScreenState extends ConsumerState<AddDebtScreen> {
                                   ),
                                 ),
                                 title:
-                                    Text(p.isSelf ? '${p.name} (You)' : p.name),
+                                    Text(_displayName(p)),
                                 trailing: (isDebtor
                                             ? _selectedDebtorId
                                             : _selectedCreditorId) ==
@@ -561,11 +570,7 @@ class _AddDebtScreenState extends ConsumerState<AddDebtScreen> {
                                     ...people.map((p) {
                                       return DropdownMenuItem(
                                         value: p.id,
-                                        child: Text(
-                                          p.isSelf
-                                              ? '${p.name} (You)'
-                                              : p.name,
-                                        ),
+                                        child: Text(_displayName(p)),
                                       );
                                     }),
                                     const DropdownMenuItem(
@@ -678,11 +683,7 @@ class _AddDebtScreenState extends ConsumerState<AddDebtScreen> {
                                     ...people.map((p) {
                                       return DropdownMenuItem(
                                         value: p.id,
-                                        child: Text(
-                                          p.isSelf
-                                              ? '${p.name} (You)'
-                                              : p.name,
-                                        ),
+                                        child: Text(_displayName(p)),
                                       );
                                     }),
                                     const DropdownMenuItem(

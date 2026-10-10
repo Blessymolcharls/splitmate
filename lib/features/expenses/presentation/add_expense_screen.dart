@@ -7,6 +7,7 @@ import '../../../app/theme.dart';
 import '../../../core/errors/app_exceptions.dart';
 import '../../../core/utils/money_formatter.dart';
 import '../../../core/utils/money_parser.dart';
+import '../../people/domain/person.dart';
 import '../../people/presentation/widgets/add_edit_person_dialog.dart';
 import '../../people/providers/people_providers.dart';
 import '../domain/expense.dart';
@@ -277,6 +278,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     }
   }
 
+  String _displayName(Person p) {
+    if (!p.isSelf) return p.name;
+    return p.name.trim().toLowerCase() == 'you' ? 'You' : '${p.name} (You)';
+  }
+
   Future<void> _openAddPerson({bool makePayer = false}) async {
     final newPerson = await AddEditPersonDialog.show(context);
     if (newPerson != null && mounted) {
@@ -492,11 +498,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                     ...people.map((p) {
                                       return DropdownMenuItem(
                                         value: p.id,
-                                        child: Text(
-                                          p.isSelf
-                                              ? '${p.name} (You)'
-                                              : p.name,
-                                        ),
+                                        child: Text(_displayName(p)),
                                       );
                                     }),
                                     const DropdownMenuItem(
@@ -766,7 +768,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                   Expanded(
                                     child: Text(
                                       person.isSelf
-                                          ? '${person.name} (You)'
+                                          ? (person.name.trim().toLowerCase() == 'you' ? 'You' : '${person.name} (You)')
                                           : person.name,
                                       style: const TextStyle(
                                         fontSize: 15,

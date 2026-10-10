@@ -112,6 +112,11 @@ class _FakeDebtsRepo implements DebtsRepository {
   Future<void> deleteDebt(String id) async {
     debts.removeWhere((d) => d.id == id);
   }
+
+  @override
+  Future<void> deleteAllDebts() async {
+    debts.clear();
+  }
 }
 
 class _FakeExpensesRepo implements ExpensesRepository {
@@ -156,6 +161,11 @@ class _FakeExpensesRepo implements ExpensesRepository {
   Future<void> deleteExpense(String id) async {
     expenses.removeWhere((e) => e.id == id);
   }
+
+  @override
+  Future<void> deleteAllExpenses() async {
+    expenses.clear();
+  }
 }
 
 class _FakeSettlementsRepo implements SettlementsRepository {
@@ -184,6 +194,11 @@ class _FakeSettlementsRepo implements SettlementsRepository {
   @override
   Future<void> deleteSettlement(String id) async {
     settlements.removeWhere((s) => s.id == id);
+  }
+
+  @override
+  Future<void> deleteAllSettlements() async {
+    settlements.clear();
   }
 }
 
@@ -335,8 +350,104 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Export Transactions'), findsOneWidget);
+      expect(find.byKey(const Key('save_pdf_file_btn')), findsOneWidget);
       expect(find.byKey(const Key('copy_csv_clipboard_btn')), findsOneWidget);
       expect(find.byKey(const Key('save_csv_file_btn')), findsOneWidget);
+    });
+
+    testWidgets('export PDF button opens export sheet with Save as PDF button', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      // Tap Export PDF icon
+      await tester.tap(find.byKey(const Key('export_pdf_btn')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Export Transactions'), findsOneWidget);
+      expect(find.byKey(const Key('save_pdf_file_btn')), findsOneWidget);
+
+      // Tap Save as PDF
+      await tester.tap(find.byKey(const Key('save_pdf_file_btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+    });
+
+    testWidgets('delete history button clears all debts, expenses, and settlements with confirmation', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      // Seed items in fake repos
+      fakeDebts.debts.add(ManualDebt(
+        id: 'd1',
+        debtorId: 'friend-anu',
+        creditorId: DatabaseMigrations.defaultSelfUserId,
+        amountPaise: 2500,
+        debtDate: DateTime.now(),
+        description: 'Snacks',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ));
+      fakeExpenses.expenses.add(ExpenseWithShares(
+        expense: Expense(
+          id: 'e1',
+          title: 'Dinner',
+          totalPaise: 3000,
+          payerId: DatabaseMigrations.defaultSelfUserId,
+          splitType: 'equal',
+          expenseDate: DateTime.now(),
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        shares: [
+          ExpenseShare(
+            expenseId: 'e1',
+            personId: 'friend-anu',
+            sharePaise: 1500,
+          ),
+        ],
+      ));
+      fakeSettlements.settlements.add(Settlement(
+        id: 'set1',
+        payerId: 'friend-anu',
+        receiverId: DatabaseMigrations.defaultSelfUserId,
+        amountPaise: 1000,
+        settlementDate: DateTime.now(),
+        createdAt: DateTime.now(),
+      ));
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      // Initially records exist
+      expect(fakeDebts.debts, isNotEmpty);
+      expect(fakeExpenses.expenses, isNotEmpty);
+      expect(fakeSettlements.settlements, isNotEmpty);
+
+      // Tap Delete History button in AppBar
+      await tester.tap(find.byKey(const Key('delete_history_btn')));
+      await tester.pumpAndSettle();
+
+      // Confirmation dialog should appear
+      expect(find.text('Clear All History?'), findsOneWidget);
+      expect(find.byKey(const Key('confirm_delete_history_btn')), findsOneWidget);
+
+      // Tap Delete All
+      await tester.tap(find.byKey(const Key('confirm_delete_history_btn')));
+      await tester.pumpAndSettle();
+
+      // All history is cleared
+      expect(fakeDebts.debts, isEmpty);
+      expect(fakeExpenses.expenses, isEmpty);
+      expect(fakeSettlements.settlements, isEmpty);
     });
   });
 }

@@ -23,6 +23,7 @@ abstract class DebtsRepository {
     String? description,
   });
   Future<void> deleteDebt(String id);
+  Future<void> deleteAllDebts();
 }
 
 class SqliteDebtsRepository implements DebtsRepository {
@@ -171,6 +172,13 @@ class SqliteDebtsRepository implements DebtsRepository {
 
     await _db.transaction((txn) async {
       await txn.delete('manual_debts', where: 'id = ?', whereArgs: [id]);
+    });
+  }
+
+  @override
+  Future<void> deleteAllDebts() async {
+    await _db.transaction((txn) async {
+      await txn.delete('manual_debts');
     });
   }
 }

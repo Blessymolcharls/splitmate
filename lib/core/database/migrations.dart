@@ -5,7 +5,7 @@ class DatabaseMigrations {
 
   static const int currentVersion = 1;
   static const String defaultSelfUserId = '00000000-0000-0000-0000-000000000001';
-  static const String defaultSelfUserName = 'Blessy';
+  static const String defaultSelfUserName = 'You';
 
   static Future<void> onCreate(Database db, int version) async {
     final now = DateTime.now().toIso8601String();
@@ -106,7 +106,7 @@ class DatabaseMigrations {
       CREATE INDEX idx_settlements_date ON settlements(settlement_date);
     ''');
 
-    // Seed default self profile (Blessy)
+    // Seed default self profile (You)
     await db.insert('people', {
       'id': defaultSelfUserId,
       'name': defaultSelfUserName,

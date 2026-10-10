@@ -19,6 +19,7 @@ abstract class SettlementsRepository {
     String? notes,
   });
   Future<void> deleteSettlement(String id);
+  Future<void> deleteAllSettlements();
 }
 
 class SqliteSettlementsRepository implements SettlementsRepository {
@@ -156,5 +157,10 @@ class SqliteSettlementsRepository implements SettlementsRepository {
   @override
   Future<void> deleteSettlement(String id) async {
     await _db.delete('settlements', where: 'id = ?', whereArgs: [id]);
+  }
+
+  @override
+  Future<void> deleteAllSettlements() async {
+    await _db.delete('settlements');
   }
 }

@@ -28,7 +28,7 @@ class _InMemoryPeopleRepo implements PeopleRepository {
   final List<Person> people = [
     Person(
       id: DatabaseMigrations.defaultSelfUserId,
-      name: 'Blessy',
+      name: 'You',
       isSelf: true,
       isArchived: false,
       createdAt: DateTime.now(),
@@ -168,6 +168,11 @@ class _InMemoryDebtsRepo implements DebtsRepository {
   Future<void> deleteDebt(String id) async {
     debts.removeWhere((d) => d.id == id);
   }
+
+  @override
+  Future<void> deleteAllDebts() async {
+    debts.clear();
+  }
 }
 
 class _InMemoryExpensesRepo implements ExpensesRepository {
@@ -233,6 +238,11 @@ class _InMemoryExpensesRepo implements ExpensesRepository {
   Future<void> deleteExpense(String id) async {
     expenses.removeWhere((e) => e.id == id);
   }
+
+  @override
+  Future<void> deleteAllExpenses() async {
+    expenses.clear();
+  }
 }
 
 class _InMemorySettlementsRepo implements SettlementsRepository {
@@ -261,6 +271,11 @@ class _InMemorySettlementsRepo implements SettlementsRepository {
   @override
   Future<void> deleteSettlement(String id) async {
     settlements.removeWhere((s) => s.id == id);
+  }
+
+  @override
+  Future<void> deleteAllSettlements() async {
+    settlements.clear();
   }
 }
 
@@ -344,7 +359,7 @@ void main() {
       await tester.enterText(amountField, '20');
       await tester.pumpAndSettle();
 
-      expect(find.text('You (Blessy) owes Anu ₹20'), findsOneWidget);
+      expect(find.text('You owes Anu ₹20'), findsOneWidget);
 
       // Record debt
       await tester.tap(find.widgetWithText(ElevatedButton, 'Record Debt'));
@@ -379,18 +394,18 @@ void main() {
       final rahul = await peopleRepo.findPersonByName('Rahul');
       expect(rahul, isNotNull);
 
-      // Select Blessy as creditor
+      // Select You as creditor
       await tester.tap(find.byKey(const Key('creditor_dropdown')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Blessy (You)').last);
+      await tester.tap(find.text('You').last);
       await tester.pumpAndSettle();
 
-      // Preview shows Rahul owes You (Blessy)
+      // Preview shows Rahul owes You
       final amountField = find.byKey(const Key('debt_amount_input'));
       await tester.enterText(amountField, '50');
       await tester.pumpAndSettle();
 
-      expect(find.text('Rahul owes You (Blessy) ₹50'), findsOneWidget);
+      expect(find.text('Rahul owes You ₹50'), findsOneWidget);
     });
 
     testWidgets('3. Adding a participant directly from Add Expense', (tester) async {

@@ -39,7 +39,7 @@ void main() {
 
       // Verify self person exists
       final self = await peopleRepo.getSelfPerson();
-      expect(self.name, 'Blessy');
+      expect(self.name, 'You');
       expect(self.isSelf, isTrue);
 
       // Add two friends: Rahul and Priya

@@ -23,12 +23,12 @@ void main() {
       await appDb.close();
     });
 
-    test('initial state contains default self profile Blessy', () async {
+    test('initial state contains default self profile You', () async {
       final people = await repository.getAllPeople();
       expect(people.length, 1);
       final self = people.first;
       expect(self.id, DatabaseMigrations.defaultSelfUserId);
-      expect(self.name, 'Blessy');
+      expect(self.name, 'You');
       expect(self.isSelf, true);
       expect(self.isArchived, false);
     });
@@ -45,7 +45,7 @@ void main() {
       final all = await repository.getAllPeople();
       expect(all.length, 3);
       // Self profile is always first
-      expect(all[0].name, 'Blessy');
+      expect(all[0].name, 'You');
       expect(all[0].isSelf, true);
       // Remaining friends ordered alphabetically
       expect(all[1].name, 'Anu');

@@ -217,7 +217,7 @@ class _AddEditPersonDialogState extends ConsumerState<AddEditPersonDialog> {
                 textCapitalization: TextCapitalization.words,
                 decoration: InputDecoration(
                   labelText: "Person's name",
-                  hintText: 'e.g. Rahul, Anu',
+                  hintText: 'e.g. Alex, Sam',
                   errorText: _errorMessage,
                   prefixIcon: const Icon(
                     Icons.badge_outlined,

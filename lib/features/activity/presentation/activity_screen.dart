@@ -13,7 +13,7 @@ import '../../people/providers/people_providers.dart';
 import '../../settlements/domain/settlement.dart';
 import '../../settlements/providers/settlements_providers.dart';
 
-import '../../../core/utils/csv_export_service.dart';
+import '../../../core/utils/pdf_export_service.dart';
 import '../../settlements/presentation/widgets/settlement_detail_sheet.dart';
 
 sealed class ActivityItem {
@@ -53,6 +53,110 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
   String? _selectedPersonId; // null = all people
   String _selectedDateRange = 'all'; // 'all', 'this_month', 'last_30_days'
 
+  Future<void> _confirmClearHistory(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear All History?'),
+        content: const Text(
+          'This will permanently delete all expenses, direct debts, and repayment settlements.\n\nYour contacts and profile will be kept.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            key: const Key('confirm_delete_history_btn'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.negativeBalance,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete All'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await Future.wait([
+          ref.read(debtsListProvider.notifier).deleteAllDebts(),
+          ref.read(expensesListProvider.notifier).deleteAllExpenses(),
+          ref.read(settlementsListProvider.notifier).deleteAllSettlements(),
+        ]);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('All transaction history cleared successfully'),
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to clear history: $e'),
+              backgroundColor: AppColors.negativeBalance,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteSingleItem({
+    required BuildContext context,
+    required String title,
+    required Future<void> Function() onDelete,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: const Text(
+          'Are you sure you want to delete this record? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            key: const Key('confirm_delete_single_item_btn'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.negativeBalance,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await onDelete();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Record deleted successfully')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete: $e'),
+              backgroundColor: AppColors.negativeBalance,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final debtsAsync = ref.watch(debtsListProvider);
@@ -77,11 +181,11 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
         title: const Text('Activity'),
         actions: [
           IconButton(
-            key: const Key('export_csv_btn'),
-            icon: const Icon(Icons.file_download_outlined),
-            tooltip: 'Export CSV',
+            key: const Key('export_pdf_btn'),
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+            tooltip: 'Export PDF',
             onPressed: () {
-              CsvExportService.showExportSheet(
+              PdfExportService.showExportSheet(
                 context: context,
                 debts: debts,
                 expenses: expenses,
@@ -89,6 +193,31 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                 people: people,
               );
             },
+          ),
+          IconButton(
+            key: const Key('export_csv_btn'),
+            icon: const Icon(Icons.file_download_outlined),
+            tooltip: 'Export Data',
+            onPressed: () {
+              PdfExportService.showExportSheet(
+                context: context,
+                debts: debts,
+                expenses: expenses,
+                settlements: settlements,
+                people: people,
+              );
+            },
+          ),
+          IconButton(
+            key: const Key('delete_history_btn'),
+            icon: const Icon(
+              Icons.delete_sweep_outlined,
+              color: AppColors.negativeBalance,
+            ),
+            tooltip: 'Clear History',
+            onPressed: (debts.isEmpty && expenses.isEmpty && settlements.isEmpty)
+                ? null
+                : () => _confirmClearHistory(context),
           ),
         ],
       ),
@@ -172,7 +301,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                             ...people.map((p) => DropdownMenuItem<String?>(
                                   value: p.id,
                                   child: Text(
-                                    p.isSelf ? '${p.name} (You)' : p.name,
+                                    p.isSelf ? (p.name.trim().toLowerCase() == 'you' ? 'You' : '${p.name} (You)') : p.name,
                                     style: const TextStyle(fontSize: 12),
                                   ),
                                 )),
@@ -388,6 +517,13 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                               onTap: () => context.push(
                                 '/debts/add?debtId=${item.debt.id}',
                               ),
+                              onDelete: () => _confirmDeleteSingleItem(
+                                context: context,
+                                title: 'Delete Direct Debt?',
+                                onDelete: () => ref
+                                    .read(debtsListProvider.notifier)
+                                    .deleteDebt(item.debt.id),
+                              ),
                             ),
                           );
                         } else if (item is ExpenseActivityItem) {
@@ -398,6 +534,13 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                               people: people,
                               onTap: () => context.push(
                                 '/expenses/add?expenseId=${item.expense.id}',
+                              ),
+                              onDelete: () => _confirmDeleteSingleItem(
+                                context: context,
+                                title: 'Delete Expense?',
+                                onDelete: () => ref
+                                    .read(expensesListProvider.notifier)
+                                    .deleteExpense(item.expense.id),
                               ),
                             ),
                           );
@@ -411,6 +554,13 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                                 context,
                                 settlement: item.settlement,
                                 people: people,
+                              ),
+                              onDelete: () => _confirmDeleteSingleItem(
+                                context: context,
+                                title: 'Delete Repayment?',
+                                onDelete: () => ref
+                                    .read(settlementsListProvider.notifier)
+                                    .deleteSettlement(item.settlement.id),
                               ),
                             ),
                           );
@@ -465,11 +615,13 @@ class _ActivityDebtCard extends StatelessWidget {
   final ManualDebt debt;
   final List<Person> people;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
   const _ActivityDebtCard({
     required this.debt,
     required this.people,
     required this.onTap,
+    this.onDelete,
   });
 
   @override
@@ -567,6 +719,18 @@ class _ActivityDebtCard extends StatelessWidget {
                   ),
                 ],
               ),
+              if (onDelete != null) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  key: Key('delete_debt_${debt.id}'),
+                  icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                  color: AppColors.secondaryText,
+                  tooltip: 'Delete debt',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: onDelete,
+                ),
+              ],
             ],
           ),
         ),
@@ -579,11 +743,13 @@ class _ActivityExpenseCard extends StatelessWidget {
   final ExpenseWithShares expense;
   final List<Person> people;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
   const _ActivityExpenseCard({
     required this.expense,
     required this.people,
     required this.onTap,
+    this.onDelete,
   });
 
   @override
@@ -682,6 +848,18 @@ class _ActivityExpenseCard extends StatelessWidget {
                   ),
                 ],
               ),
+              if (onDelete != null) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  key: Key('delete_expense_${expense.id}'),
+                  icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                  color: AppColors.secondaryText,
+                  tooltip: 'Delete expense',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: onDelete,
+                ),
+              ],
             ],
           ),
         ),
@@ -694,11 +872,13 @@ class _ActivitySettlementCard extends StatelessWidget {
   final Settlement settlement;
   final List<Person> people;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
   const _ActivitySettlementCard({
     required this.settlement,
     required this.people,
     required this.onTap,
+    this.onDelete,
   });
 
   @override
@@ -796,6 +976,18 @@ class _ActivitySettlementCard extends StatelessWidget {
                   ),
                 ],
               ),
+              if (onDelete != null) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  key: Key('delete_settlement_${settlement.id}'),
+                  icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                  color: AppColors.secondaryText,
+                  tooltip: 'Delete repayment',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: onDelete,
+                ),
+              ],
             ],
           ),
         ),

@@ -55,6 +55,12 @@ class SettlementsListNotifier extends AsyncNotifier<List<Settlement>> {
     await repo.deleteSettlement(id);
     await refresh();
   }
+
+  Future<void> deleteAllSettlements() async {
+    final repo = ref.read(settlementsRepositoryProvider);
+    await repo.deleteAllSettlements();
+    await refresh();
+  }
 }
 
 /// Provider of pure Dart calculated settlement suggestions based on the current ledger balances.

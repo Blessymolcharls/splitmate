@@ -73,6 +73,13 @@ class DebtsListNotifier extends AsyncNotifier<List<ManualDebt>> {
     await future;
   }
 
+  Future<void> deleteAllDebts() async {
+    final repo = ref.read(debtsRepositoryProvider);
+    await repo.deleteAllDebts();
+    ref.invalidateSelf();
+    await future;
+  }
+
   Future<void> refresh() async {
     ref.invalidateSelf();
     await future;

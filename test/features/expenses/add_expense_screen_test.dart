@@ -165,6 +165,11 @@ class FakeExpensesRepo implements ExpensesRepository {
   Future<void> deleteExpense(String id) async {
     expenses.removeWhere((e) => e.id == id);
   }
+
+  @override
+  Future<void> deleteAllExpenses() async {
+    expenses.clear();
+  }
 }
 
 void main() {

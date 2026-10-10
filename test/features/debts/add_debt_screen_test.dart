@@ -130,6 +130,11 @@ class FakeDebtsRepo implements DebtsRepository {
   Future<void> deleteDebt(String id) async {
     debts.removeWhere((d) => d.id == id);
   }
+
+  @override
+  Future<void> deleteAllDebts() async {
+    debts.clear();
+  }
 }
 
 void main() {

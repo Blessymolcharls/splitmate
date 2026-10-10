@@ -20,7 +20,7 @@ class FakePeopleRepo implements PeopleRepository {
   final List<Person> people = [
     Person(
       id: DatabaseMigrations.defaultSelfUserId,
-      name: 'Blessy',
+      name: 'You',
       isSelf: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -110,6 +110,11 @@ class FakeDebtsRepo implements DebtsRepository {
 
   @override
   Future<void> deleteDebt(String id) async {}
+
+  @override
+  Future<void> deleteAllDebts() async {
+    debts.clear();
+  }
 }
 
 class FakeExpensesRepo implements ExpensesRepository {
@@ -152,6 +157,11 @@ class FakeExpensesRepo implements ExpensesRepository {
 
   @override
   Future<void> deleteExpense(String id) async {}
+
+  @override
+  Future<void> deleteAllExpenses() async {
+    expenses.clear();
+  }
 }
 
 class FakeSettlementsRepo implements SettlementsRepository {
@@ -191,6 +201,11 @@ class FakeSettlementsRepo implements SettlementsRepository {
   @override
   Future<void> deleteSettlement(String id) async {
     settlements.removeWhere((s) => s.id == id);
+  }
+
+  @override
+  Future<void> deleteAllSettlements() async {
+    settlements.clear();
   }
 }
 
@@ -417,7 +432,7 @@ void main() {
       // Select receiver
       await tester.tap(find.byKey(const Key('repayment_receiver_dropdown')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Blessy (You)').last);
+      await tester.tap(find.text('You').last);
       await tester.pumpAndSettle();
 
       // Swap button is now active
@@ -428,8 +443,8 @@ void main() {
       await tester.tap(find.byKey(const Key('swap_parties_btn')));
       await tester.pumpAndSettle();
 
-      // Now payer is Blessy and receiver is Anu
-      expect(find.text('Blessy (You)'), findsOneWidget);
+      // Now payer is You and receiver is Anu
+      expect(find.text('You'), findsOneWidget);
       expect(find.text('Anu'), findsOneWidget);
     });
 

@@ -20,7 +20,7 @@ class _FakePeopleRepo implements PeopleRepository {
   final List<Person> people = [
     Person(
       id: DatabaseMigrations.defaultSelfUserId,
-      name: 'Blessy',
+      name: 'You',
       isSelf: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -103,6 +103,11 @@ class _FakeDebtsRepo implements DebtsRepository {
 
   @override
   Future<void> deleteDebt(String id) async {}
+
+  @override
+  Future<void> deleteAllDebts() async {
+    debts.clear();
+  }
 }
 
 class _FakeExpensesRepo implements ExpensesRepository {
@@ -145,6 +150,11 @@ class _FakeExpensesRepo implements ExpensesRepository {
 
   @override
   Future<void> deleteExpense(String id) async {}
+
+  @override
+  Future<void> deleteAllExpenses() async {
+    expenses.clear();
+  }
 }
 
 class _FakeSettlementsRepo implements SettlementsRepository {
@@ -172,6 +182,11 @@ class _FakeSettlementsRepo implements SettlementsRepository {
 
   @override
   Future<void> deleteSettlement(String id) async {}
+
+  @override
+  Future<void> deleteAllSettlements() async {
+    settlements.clear();
+  }
 }
 
 void main() {

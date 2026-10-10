@@ -72,6 +72,13 @@ class ExpensesListNotifier extends AsyncNotifier<List<ExpenseWithShares>> {
     await future;
   }
 
+  Future<void> deleteAllExpenses() async {
+    final repo = ref.read(expensesRepositoryProvider);
+    await repo.deleteAllExpenses();
+    ref.invalidateSelf();
+    await future;
+  }
+
   Future<void> refresh() async {
     ref.invalidateSelf();
     await future;

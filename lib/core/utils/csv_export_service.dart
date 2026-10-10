@@ -8,6 +8,7 @@ import '../../features/debts/domain/manual_debt.dart';
 import '../../features/expenses/domain/expense.dart';
 import '../../features/people/domain/person.dart';
 import '../../features/settlements/domain/settlement.dart';
+import 'pdf_export_service.dart';
 
 class CsvExportService {
   CsvExportService._();
@@ -27,7 +28,10 @@ class CsvExportService {
     required List<Person> people,
   }) {
     final Map<String, String> personNames = {
-      for (final p in people) p.id: p.isSelf ? '${p.name} (You)' : p.name,
+      for (final p in people)
+        p.id: p.isSelf
+            ? (p.name.trim().toLowerCase() == 'you' ? 'You' : '${p.name} (You)')
+            : p.name,
     };
 
     final rows = <List<String>>[];
@@ -118,22 +122,12 @@ class CsvExportService {
     required List<Settlement> settlements,
     required List<Person> people,
   }) {
-    final csvData = generateCsv(
+    PdfExportService.showExportSheet(
+      context: context,
       debts: debts,
       expenses: expenses,
       settlements: settlements,
       people: people,
-    );
-
-    final totalCount = debts.length + expenses.length + settlements.length;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => _ExportModalContent(
-        csvData: csvData,
-        totalCount: totalCount,
-      ),
     );
   }
 }
